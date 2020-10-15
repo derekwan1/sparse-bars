@@ -1,7 +1,7 @@
 import numpy as np
 
 def sigmoid(x, lamb):
-    return 1 / (1 + np.exp(-lamb * x))
+    return 1 / (1 + np.exp(x))
 
 class Model:
     def __init__(self, num_neurons, input_dims, alpha, beta, gamma, lamb, p):
@@ -19,8 +19,9 @@ class Model:
         different update rules 
         """
         self.neurons = np.random.randn(input_dims, num_neurons)
+        self.input_dims = input_dims
         self.inhib = self.zeros(num_neurons, num_neurons)
-        self.thresholds = np.random.randn(1, num_neurons)
+        self.thresholds = np.reshape(np.ones((num_neurons)), (num_neurons, 1))
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
@@ -47,6 +48,23 @@ class Model:
             outputs = self.forward(data)
             self.thresholds += self.gamma * (outputs - self.p)
 
+
+    def init_transient(data, num_iter):
+        """
+        Estimates y based on diff eq dy/dt
+        """
+        qx = np.dot(data, self.neurons) # num_points x 16
+        y = np.zeros((self.neurons.shape[1], data.shape[0])) # 16 x num_points
+        for _ in range(num_iter):
+            wy = np.dot(self.inhib, y) # (16 x num_points)
+            dydt = qx.T + wy - self.thresholds # (16 x num_points)
+            dydt = sigmoid(dydt) - y # (16 x num_points)
+            y += epsilon * dydt
+        output = np.zeros((qx.shape[1], qx.shape[0])) # 16 x num_points
+        output[y > 0.5] = 1
+        return output
+
+
     def train(self, data):
         """
         data should be of dimensions (num_examples, pixels)
@@ -69,7 +87,7 @@ class Model:
                     self.inhib[i, j] += grad
 
         # Update feed-forward weights
-
+        
 
 
 Model(16, 64, 0, 0, 0.1, 10)
