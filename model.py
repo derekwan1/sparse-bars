@@ -4,7 +4,7 @@ def sigmoid(x, lamb):
     return 1 / (1 + np.exp(x))
 
 class Model:
-    def __init__(self, num_neurons, input_dims, alpha, beta, gamma, lamb, p):
+    def __init__(self, params):
         """
         Generate `neurons` of size (num_neurons x dims)
         I'll use the X*W convention where W is my weight
@@ -18,26 +18,20 @@ class Model:
         which I keep separate from neurons because they follow
         different update rules 
         """
+        num_neurons = params["num_neurons"]
+        input_dims = params["input_dims"]
+
         self.neurons = np.random.randn(input_dims, num_neurons)
         self.input_dims = input_dims
         self.inhib = self.zeros(num_neurons, num_neurons)
         self.thresholds = np.reshape(np.ones((num_neurons)), (num_neurons, 1))
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-        self.lamb = lamb
-        self.p = p
-
-    def forward(self, data):
-        """
-        Computes the output of the network based on input
-        data. `data` should be (num_examples, pixels)
-        """
-        output = np.dot(data, self.neurons) # num_examples x num_neurons
-        output = sigmoid(output, self.lamb)
-        output[output > 0.5] = 1
-        output[output <= 0.5] = 0
-        return output
+        self.alpha = params["alpha"]
+        self.beta = params["beta"]
+        self.gamma = params["gamma"]
+        self.lamb = params["lamb"]
+        self.p = params["p"]
+        self.num_updates = params["num_updates"]
+        self.num_transient = params["num_transient"]
 
     def tune_thresholds(self, data, iterations=100):
         """
@@ -48,8 +42,7 @@ class Model:
             outputs = self.forward(data)
             self.thresholds += self.gamma * (outputs - self.p)
 
-
-    def init_transient(data, num_iter):
+    def init_transient(self, data, num_iter):
         """
         Estimates y based on diff eq dy/dt
         """
@@ -71,23 +64,29 @@ class Model:
         In my examples, pixels will be 64 so I can display
         64 pixel images
         """
-        outputs = self.forward(data)
+        for _ in range(self.num_updates):
+            y = self.init_transient(data, self.num_transient)
+            self.update_weights(data, y)
+
+    def update_weights(self, data, y):
+        yiyj = np.dot(y, y.T) / data.shape[0]
+        y_agg = np.mean(y, axis=1)
 
         # Update thresholds
-        t_grad = (outputs - p) * self.gamma
-        self.thresholds += t_grad
+        dt = self.gamma * (y_agg - self.p)
+        self.thresholds += dt
 
         # Update inhibitory weights
-        for i in range(self.inhib.shape[0]):
-            for j in range(self.inhib.shape[1]):
-                if i != j or self.inhib[i, j] > 0:
-                    self.inhib[i, j] = 0
-                else:
-                    grad = -self.alpha * (outputs[i] * outputs[j] - pow(self.p, 2))
-                    self.inhib[i, j] += grad
+        d_inhib = -self.alpha * (yiyj - pow(self.p, 2))
+        self.inhibs += d_inhib
 
-        # Update feed-forward weights
-        
+        # Constrain weights 
+        self.inhibs[self.inhibs > 0] = 0
+        for i in range(self.inhibs.shape[0]):
+            self.inhibs[i, i] = 0
 
-
-Model(16, 64, 0, 0, 0.1, 10)
+        # Update forward weights
+        yx = np.dot(y, data) / data.shape[0] # (16 x 64)
+        yq = self.neurons * y_agg # 64 x 16
+        d_neurons = beta * (yx.T - yq) 
+        self.neurons += d_neurons # 64 x 16
