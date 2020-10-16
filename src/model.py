@@ -86,6 +86,7 @@ class Model:
         """
         `gen` is a function that creates batches of bar data
         """
+        self.display_neurons()
         for x in range(self.num_updates):
             data = gen(100, int(self.input_dims**0.5), self.p)
             y = self.init_transient(data, self.num_transient)
