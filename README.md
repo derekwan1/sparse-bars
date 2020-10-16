@@ -9,3 +9,6 @@ I then trained on a series of "bar" images, which look like so.
 
 Interestingly, it only takes a one-layer perceptron network with 16 neurons and no knowledge of the dataset to recover the dataset. The feedforward connections developed so that the units became detectors of the most common, highly correlated components (lines). All information is preserved and virtually all redundancy is removed by the inhibitory weights, as the outputs are statistically independent.
 ![After](img/after.png)
+
+In contrast, PCA does not even come close to learning the bars
+![PCA](img/pca.png)
