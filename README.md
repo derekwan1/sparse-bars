@@ -4,5 +4,8 @@ This is an experiment based on [Peter Foldiak's work](https://redwood.berkeley.e
 Neurons are initialized randomly and look like so:
 ![Before](img/before.png)
 
-I then train on a series of "bar" images, which are simple combinations of horizontal and vertical bars. The feedforward connections developed so that the units became detectors of the most common, highly correlated components (lines). All information is preserved and virtually all redundancy is removed by the inhibitory weights, as the outputs are statistically independent.
+I then trained on a series of "bar" images, which look like so.
+![Data](img/data.png)
+
+Interestingly, it only takes a one-layer perceptron network with 16 neurons and no knowledge of the dataset to recover the dataset. The feedforward connections developed so that the units became detectors of the most common, highly correlated components (lines). All information is preserved and virtually all redundancy is removed by the inhibitory weights, as the outputs are statistically independent.
 ![After](img/after.png)
