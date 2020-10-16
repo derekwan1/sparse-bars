@@ -40,9 +40,12 @@ class Model:
         Allow thresholds to reach stable values by running the network
         with alpha = beta = 0 and gamma set to some small non-zero value
         """
+        alpha, beta, gamma = self.alpha, self.beta, self.gamma
+        self.alpha, self.beta, self.gamma = 0, 0, 0.1 # Foldiak's parameters
         for _ in range(iterations):
-            outputs = self.forward(data)
-            self.thresholds += self.gamma * (outputs - self.p)
+            outputs = self.init_transient(data, self.num_transient)
+            self.update_weights(data, outputs)
+        self.alpha, self.beta, self.gamma = alpha, beta, gamma
 
     def init_transient(self, data, num_iter):
         """
@@ -86,7 +89,9 @@ class Model:
         """
         `gen` is a function that creates batches of bar data
         """
-        self.display_neurons()
+        self.display_neurons(True)
+        data = gen(100, int(self.input_dims**0.5), self.p)
+        self.tune_thresholds(data)
         for x in range(self.num_updates):
             data = gen(100, int(self.input_dims**0.5), self.p)
             y = self.init_transient(data, self.num_transient)
@@ -94,8 +99,12 @@ class Model:
         
         self.display_neurons()
 
-    def display_neurons(self):
+    def display_neurons(self, before=False):
         fig, ax = plt.subplots(nrows=4, ncols=4)
+        if before:
+            fig.suptitle(f"Initial neurons")
+        else:
+            fig.suptitle(f"Neurons after {self.num_updates} training rounds")
         r = 0
         for row in ax:
             c = 0

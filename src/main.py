@@ -23,14 +23,21 @@ def generate_bars(num_samples, size, p, verbosity=False):
 
     # display some images
     if verbosity:
-        for i in range(5):
-            plt.imshow(data[i, :, :], cmap="gray")
-            plt.show()
+        fig, ax = plt.subplots(nrows=4, ncols=4)
+        r = 0
+        for row in ax:
+            c = 0
+            for col in row:
+                col.imshow(np.reshape(data[(r * 4) + c, :, :], (8, 8)), cmap="gray")
+                c += 1
+            r += 1
+        plt.show()
 
     # vectorize the images
     return np.reshape(data, (num_samples, size * size))
 
 if __name__ == "__main__":
+    np.random.seed(0)
     p = 0.08
     params = {
         "num_neurons": 16,
