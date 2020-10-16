@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def sigmoid(x, lamb):
-    return 1 / (1 + np.exp(x))
+    return 1 / (1 + np.exp(-x))
 
 class Model:
     def __init__(self, params):
@@ -59,30 +59,6 @@ class Model:
         output[y > 0.5] = 1
         return output
 
-
-    def train(self, gen):
-        """
-        `gen` is a function that creates batches of bar data
-        """
-        for x in range(self.num_updates):
-            print(x)
-            data = gen(100, int(self.input_dims**0.5), self.p)
-            y = self.init_transient(data, self.num_transient)
-            self.update_weights(data, y)
-
-            if x % 50 == 0:
-                fig, ax = plt.subplots(nrows=4, ncols=4)
-                r = 0
-                for row in ax:
-                    c = 0
-                    for col in row:
-                        col.imshow(np.reshape(self.neurons[:, (r * 4) + c], (8, 8)))
-                        c += 1
-                    r += 1
-                plt.show()
-            if x == 50:
-                1/0
-
     def update_weights(self, data, y):
         yiyj = np.dot(y, y.T) / data.shape[0]
         y_agg = np.mean(y, axis=1)
@@ -105,3 +81,25 @@ class Model:
         yq = self.neurons * y_agg # 64 x 16
         d_neurons = self.beta * (yx.T - yq)
         self.neurons += d_neurons # 64 x 16
+
+    def train(self, gen):
+        """
+        `gen` is a function that creates batches of bar data
+        """
+        for x in range(self.num_updates):
+            data = gen(100, int(self.input_dims**0.5), self.p)
+            y = self.init_transient(data, self.num_transient)
+            self.update_weights(data, y)
+        
+        self.display_neurons()
+
+    def display_neurons(self):
+        fig, ax = plt.subplots(nrows=4, ncols=4)
+        r = 0
+        for row in ax:
+            c = 0
+            for col in row:
+                col.imshow(np.reshape(self.neurons[:, (r * 4) + c], (8, 8)), cmap="gray")
+                c += 1
+            r += 1
+        plt.show()

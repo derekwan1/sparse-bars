@@ -31,7 +31,7 @@ def generate_bars(num_samples, size, p, verbosity=False):
     return np.reshape(data, (num_samples, size * size))
 
 if __name__ == "__main__":
-    p = 0.1
+    p = 0.08
     params = {
         "num_neurons": 16,
         "input_dims": 64,
@@ -39,11 +39,10 @@ if __name__ == "__main__":
         "beta": 0.05,
         "gamma": 0.1,
         "lamb": 10,
-        "epsilon": 0.001,
+        "epsilon": 0.01,
         "p": p,
         "num_updates": 1000,
-        "num_transient": 1000
+        "num_transient": 100
     }
     model = m.Model(params)
     model.train(generate_bars)
-    # generate_bars(100, 8, p)
