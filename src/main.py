@@ -1,6 +1,7 @@
 import model as m
 import numpy as np
 import matplotlib.pyplot as plt
+import pca
 
 def generate_bars(num_samples, size, p, verbosity=False):
     """
@@ -53,3 +54,6 @@ if __name__ == "__main__":
     }
     model = m.Model(params)
     model.train(generate_bars)
+
+    pca_model = pca.PCAModel(np.random.randn(64, 16), 0.0001, 1000, p)
+    pca_model.train(generate_bars)
